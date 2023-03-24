@@ -1,9 +1,9 @@
-//////////thing: mongodb+srv://jmd1494:noFnHKyJ8GPhbklq@cluster0.nixq8au.mongodb.net/?retryWrites=true&w=majority
+//////////thing: mongodb+srv://jmd1494:noFnHKyJ8GPhbklq@cluster0.nixq8au.mongodb.net/<collection>?retryWrites=true&w=majority
 // pull in our models. This will automatically load the index.js from that folder
 const models = require('../models');
 
 // get the Cat model
-const { Cat } = models;
+const { Cat, Dog } = models;
 
 // default fake data so that we have something to work with until we make a real Cat
 const defaultData = {
@@ -235,6 +235,65 @@ const updateLast = (req, res) => {
   });
 };
 
+const setDogName = async (req, res) => {
+  if (!req.body.name || !req.body.breed || !req.body.age){
+    return res.status(400).json({ error: 'name, breed, and age are all required'});
+  }
+
+  const dogData = {
+    name: req.body.name,
+    breed: req.body.breed,
+    age: req.body.age,
+  }
+
+  const newDog = new Dog(dogData);
+
+  try {
+    await newDog.save();
+
+    return res.json({
+      name: dogData.name,
+      breed: dogData.breed,
+      age: dogData.age
+    })
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({error: 'Failed to create dog'});
+  }
+}
+
+const updateAge = async (req, res) => {
+  if (!req.body.name){
+    return res.status(400).json({error: 'Name is required'});
+  }
+
+  let doc;
+  
+  try {
+    doc = await Dog.findOne({ name: req.body.name }).exec();
+  } catch (err) {
+    return res.status(500).json({error: 'Something went wrong'});
+  }
+
+  if (!doc){
+    return res.json({error: 'Dog not found'});
+  }
+
+  doc.age++;
+
+  try {
+    doc.save();
+    return res.json({
+      message: 'age updated',
+    })
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({error: 'Something went wrong'});
+  }
+  
+  //other option: use findOneAndUpdate() to update data directly
+}
+
 // A function to send back the 404 page.
 const notFound = (req, res) => {
   res.status(404).render('notFound', {
@@ -252,5 +311,7 @@ module.exports = {
   setName,
   updateLast,
   searchName,
+  setDogName,
+  updateAge,
   notFound,
 };
