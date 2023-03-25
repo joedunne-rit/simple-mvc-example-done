@@ -1,4 +1,6 @@
 //////////thing: mongodb+srv://jmd1494:noFnHKyJ8GPhbklq@cluster0.nixq8au.mongodb.net/<collection>?retryWrites=true&w=majority
+//mongodb+srv://jmd1494:lwzCd5lMYG5sQBVk@cluster0.nixq8au.mongodb.net/<collection>?retryWrites=true&w=majority
+//
 // pull in our models. This will automatically load the index.js from that folder
 const models = require('../models');
 
