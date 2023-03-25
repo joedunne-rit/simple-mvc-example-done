@@ -1,6 +1,4 @@
-//////////thing: mongodb+srv://jmd1494:noFnHKyJ8GPhbklq@cluster0.nixq8au.mongodb.net/<collection>?retryWrites=true&w=majority
-//mongodb+srv://jmd1494:lwzCd5lMYG5sQBVk@cluster0.nixq8au.mongodb.net/<collection>?retryWrites=true&w=majority
-//
+////////// personal note: mongodb cloud thing can be found in bleh notes
 // pull in our models. This will automatically load the index.js from that folder
 const models = require('../models');
 
@@ -85,6 +83,18 @@ const hostPage2 = (req, res) => {
 const hostPage3 = (req, res) => {
   res.render('page3');
 };
+
+const hostPage4 = async (req, res) => {
+  try {
+    //Attempts to retrieve dog list from db, renders page if it finds list
+    const docs = await Dog.find({}).lean().exec();
+    return res.render('page4', {dogs: docs});
+  } catch (err) {
+    //error catch if something goes wrong or there is no list ot find
+    console.log(err);
+    return res.status(500).json({error: 'failed to find dogs'});
+  }
+}
 
 // Get name will return the name of the last added cat.
 const getName = (req, res) => res.json({ name: lastAdded.name });
@@ -238,19 +248,23 @@ const updateLast = (req, res) => {
 };
 
 const setDogName = async (req, res) => {
+  //Returns error if not all params are filled
   if (!req.body.name || !req.body.breed || !req.body.age){
     return res.status(400).json({ error: 'name, breed, and age are all required'});
   }
 
+  //Creates new object using parameters
   const dogData = {
     name: req.body.name,
     breed: req.body.breed,
     age: req.body.age,
   }
 
+  //Stores object data in Dog schema
   const newDog = new Dog(dogData);
 
   try {
+    //Attempts to save newDog schema to database, returns json of data if successful
     await newDog.save();
 
     return res.json({
@@ -259,12 +273,14 @@ const setDogName = async (req, res) => {
       age: dogData.age
     })
   } catch (err) {
+    //Returns error if it cannot save due to server error
     console.log(err);
     return res.status(500).json({error: 'Failed to create dog'});
   }
 }
 
 const updateAge = async (req, res) => {
+  //Returns error if no name is provided
   if (!req.body.name){
     return res.status(400).json({error: 'Name is required'});
   }
@@ -272,18 +288,23 @@ const updateAge = async (req, res) => {
   let doc;
   
   try {
+    //Attempts to find piece of data that matches name parameter
     doc = await Dog.findOne({ name: req.body.name }).exec();
   } catch (err) {
+    //Returns error if it cannot communicate w/ server correctly
     return res.status(500).json({error: 'Something went wrong'});
   }
 
   if (!doc){
+    //If dog does not exist in data, returns error stating such
     return res.json({error: 'Dog not found'});
   }
 
+  //If dog does exist in data, increments their age value
   doc.age++;
 
   try {
+    //Attempts to save updated data, and returns info on whether or not it was successful
     doc.save();
     return res.json({
       message: 'age updated',
@@ -309,6 +330,7 @@ module.exports = {
   page1: hostPage1,
   page2: hostPage2,
   page3: hostPage3,
+  page4: hostPage4,
   getName,
   setName,
   updateLast,
